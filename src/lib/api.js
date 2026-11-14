@@ -98,8 +98,21 @@ export async function adminOrders() {
 
 export const adminSetStatus = (order, status, stage) => supabase.from('orders')
   .update({ status, stage }).eq(/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(order.id)) ? 'id' : 'order_number', order.id);
-export const adminSetStoreOpen = (token, isOpen) => supabase.rpc('demo_update_store_open', { p_token: token, p_is_open: isOpen });
-export const adminSetAvailability = (token, productId, available) => supabase.rpc('demo_update_product_availability', { p_token: token, p_product_id: productId, p_available: available });
+// Con usuario del panel se usa su token; con Google, la cuenta administradora escribe directo
+// (las políticas del servidor verifican is_admin), igual que src/lib/store.js de la web.
+export const adminSetStoreOpen = (token, isOpen) => token
+  ? supabase.rpc('demo_update_store_open', { p_token: token, p_is_open: isOpen })
+  : supabase.from('store_settings').update({ is_open: isOpen, updated_at: new Date().toISOString() }).eq('id', 1);
+export const adminSetAvailability = (token, productId, available) => token
+  ? supabase.rpc('demo_update_product_availability', { p_token: token, p_product_id: productId, p_available: available })
+  : supabase.from('product_availability').upsert({ product_id: productId, available, updated_at: new Date().toISOString() });
+
+// Pedidos del cliente que inició sesión con Google (en cualquier dispositivo).
+export async function loadCustomerOrders(userId) {
+  const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+  if (error) throw error;
+  return data.map(normalizeOrder);
+}
 export const adminCoupons = token => supabase.rpc('admin_list_coupons', { p_token: token });
 export const adminSaveCoupon = (token, coupon) => supabase.rpc('admin_save_coupon', { p_coupon: coupon, p_token: token });
 export const adminReceiptUrl = async path => (await supabase.storage.from('order-receipts').createSignedUrl(path, 600)).data?.signedUrl || null;

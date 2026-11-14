@@ -3,10 +3,10 @@ import { View } from 'react-native';
 import { deliveryMapHtml } from './deliveryMapHtml';
 
 // Vista web (VS Code / navegador): el mismo mapa en un iframe.
-export default function DeliveryMap({ zones, point, activeZoneId, onPick, style }) {
+export default function DeliveryMap({ zones, point, activeZoneId, onPick, style, readOnly = false }) {
   const ref = useRef(null), ready = useRef(false), pick = useRef(onPick);
   pick.current = onPick;
-  const html = useMemo(() => deliveryMapHtml({ zones, point, activeZoneId }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const html = useMemo(() => deliveryMapHtml({ zones, point, activeZoneId, readOnly }), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const listen = e => { if (e.source !== ref.current?.contentWindow) return; try { const m = JSON.parse(e.data); if (m.type === 'ready') ready.current = true; if (m.type === 'pick') pick.current?.(m.point); } catch {} };
     window.addEventListener('message', listen);

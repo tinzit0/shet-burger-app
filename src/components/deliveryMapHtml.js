@@ -5,8 +5,9 @@ import { imageUrl } from '../lib/theme';
 
 export const SHOP_POINT = [-36.83088, -73.00707];
 
-export function deliveryMapHtml({ zones, point, activeZoneId }) {
-  const data = JSON.stringify({ zones, point, activeZoneId, logo: imageUrl('/assets/logo shet burger.png'), shop: SHOP_POINT });
+// readOnly: solo mirar (seguimiento del cliente y panel); sin tocar ni arrastrar el pin.
+export function deliveryMapHtml({ zones, point, activeZoneId, readOnly = false }) {
+  const data = JSON.stringify({ zones, point, activeZoneId, readOnly, logo: imageUrl('/assets/logo shet burger.png'), shop: SHOP_POINT });
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -33,7 +34,7 @@ function drawZones(){
 function drawPin(user){
   if(!S.point){if(pin){pin.remove();pin=null;}return;}
   if(!pin){
-    pin=L.marker(S.point,{draggable:true,autoPan:true,icon:L.divIcon({className:'pin',html:'<svg viewBox="0 0 32 44"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 27 16 43 16 43s15-16 15-27.2C31 7.6 24.3 1 16 1z"/><circle cx="16" cy="16" r="6"/></svg>',iconSize:[32,44],iconAnchor:[16,43]})})
+    pin=L.marker(S.point,{draggable:!S.readOnly,autoPan:true,icon:L.divIcon({className:'pin',html:'<svg viewBox="0 0 32 44"><path d="M16 1C7.7 1 1 7.6 1 15.8 1 27 16 43 16 43s15-16 15-27.2C31 7.6 24.3 1 16 1z"/><circle cx="16" cy="16" r="6"/></svg>',iconSize:[32,44],iconAnchor:[16,43]})})
       .on('dragend',function(e){var p=e.target.getLatLng();lastUser=[p.lat,p.lng];send({type:'pick',point:lastUser});}).addTo(map);
   } else pin.setLatLng(S.point);
   if(!user)map.setView(S.point,Math.max(map.getZoom(),16),{animate:false});
@@ -49,7 +50,7 @@ window.addEventListener('message',function(e){try{var m=typeof e.data==='string'
 map=L.map('map',{zoomControl:true,attributionControl:true,tap:true}).setView(S.shop,13);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19,className:'tiles'}).addTo(map);
 L.marker(S.shop,{interactive:false,icon:L.divIcon({className:'shop',html:'<img src="'+S.logo+'" alt="">',iconSize:[38,38],iconAnchor:[19,19]})}).addTo(map);
-map.on('click',function(e){lastUser=[e.latlng.lat,e.latlng.lng];send({type:'pick',point:lastUser});});
+if(!S.readOnly)map.on('click',function(e){lastUser=[e.latlng.lat,e.latlng.lng];send({type:'pick',point:lastUser});});
 drawZones();drawPin(false);send({type:'ready'});
 </script></body></html>`;
 }

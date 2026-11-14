@@ -20,12 +20,12 @@ const TABS = {
 // Expo Router 58 entrega navigateToTab(routeKey) a la barra (no el objeto navigation).
 function ShetTabBar({ state, navigateToTab }) {
   const insets = useSafeAreaInsets();
-  const { cartCount, adminToken } = useApp();
+  const { cartCount, isOwner } = useApp();
   return <View style={[st.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
     {state.routes.map((route, index) => {
       const tab = TABS[route.name];
       // El panel solo aparece en la barra cuando el dueño inició sesión.
-      if (!tab || (route.name === 'panel' && !adminToken && state.index !== index)) return null;
+      if (!tab || (route.name === 'panel' && !isOwner && state.index !== index)) return null;
       const focused = state.index === index;
       const onPress = () => { if (!focused) { Haptics.selectionAsync().catch(() => {}); navigateToTab(route.key); } };
       return <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={route.name === 'carrito' && cartCount ? `${tab.label}, ${cartCount} productos` : tab.label} style={st.item} hitSlop={4}>

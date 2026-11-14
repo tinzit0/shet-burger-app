@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Chip, ProductPhoto } from './ui';
+import DeliveryMap from './DeliveryMap';
 import { adminCoupons, adminDeleteCoupon, adminReceiptUrl, adminSaveCoupon, adminSaveZones, adminSetAvailability, loadZones } from '../lib/api';
 import { colors, fonts, money } from '../lib/theme';
 import { ORDER_STAGES, getOrderStage } from '../shared/orderStatus.js';
@@ -260,7 +261,8 @@ export function Zones({ token, onError }) {
   if (!zones) return <ActivityIndicator color={colors.pinkDeep}/>;
   return <View style={{ gap: 10 }}>
     <Text style={P.title}>Zonas de despacho</Text>
-    <Text style={P.small}>Cambia la tarifa o pausa una zona. Para dibujar el contorno en el mapa usa el panel web.</Text>
+    <DeliveryMap readOnly zones={zones} point={null} style={{ width: '100%', height: 300, borderWidth: 1, borderColor: colors.line }}/>
+    <Text style={P.small}>Cambia la tarifa o pausa una zona y guarda: el mapa de envío de la web y la app se actualiza al instante. Para dibujar el contorno usa el panel web.</Text>
     {zones.map(z => <View key={z.id} style={[P.box, { flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
       <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: z.color }}/>
       <View style={{ flex: 1, gap: 6 }}>

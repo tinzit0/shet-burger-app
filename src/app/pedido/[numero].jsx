@@ -6,13 +6,18 @@ import { Button, Card, Display, Eyebrow, Notice } from '../../components/ui';
 import { loadPublicOrder, subscribe } from '../../lib/api';
 import { business, colors, money } from '../../lib/theme';
 import { ORDER_STAGES, getOrderStage } from '../../shared/orderStatus.js';
-import { displayDeliveryAddress } from '../../shared/delivery.js';
+import { displayDeliveryAddress, getDeliveryZoneFromAddress } from '../../shared/delivery.js';
+import { parsePointFromAddress } from '../../shared/geo.js';
+import DeliveryMap from '../../components/DeliveryMap';
+import MapEmbed from '../../components/MapEmbed';
+import { useApp } from '../../lib/store';
 
 // Igual que el seguimiento web: el título sigue al estado actual.
 const titles = ['está recibido.', 'está en preparación.', 'está listo para servir.', 'fue entregado.'];
 
 export default function Tracker() {
   const { numero, nuevo } = useLocalSearchParams();
+  const { zones } = useApp();
   const [order, setOrder] = useState(null);
   const [state, setState] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
@@ -76,12 +81,17 @@ export default function Tracker() {
       <Eyebrow>{isDelivery ? 'Entrega a domicilio' : 'Retiro en el carrito SHET'}</Eyebrow>
       <Text style={{ fontSize: 15, fontWeight: '600' }}>{isDelivery ? displayDeliveryAddress(order.address) : business.pickupAddress}</Text>
       <Text style={st.small}>{order.customer?.name} · {order.customer?.phone}</Text>
+      {/* Igual que en la web: dónde se entrega (pin y zona) o dónde se retira. */}
+      {isDelivery
+        ? <DeliveryMap readOnly zones={zones} point={parsePointFromAddress(order.address)} activeZoneId={getDeliveryZoneFromAddress(order.address, zones)?.id || null} style={st.map}/>
+        : <MapEmbed address={business.pickupAddress} style={st.map}/>}
       {!isDelivery && <Button small variant="outline" title="Cómo llegar" style={{ alignSelf: 'flex-start', marginTop: 6 }} onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(business.pickupAddress)}`)}/>}
     </Card>
   </ScrollView>;
 }
 
 const st = StyleSheet.create({
+  map: { width: '100%', height: 220, borderRadius: 12, overflow: 'hidden', marginTop: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },
   small: { fontSize: 12, color: colors.muted },
   line: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },

@@ -6,6 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Display, Eyebrow, Field, Notice } from '../../components/ui';
+import { GoogleButton } from '../../components/GoogleButton';
+import DeliveryMap from '../../components/DeliveryMap';
+import { signOut } from '../../lib/auth';
+import { parsePointFromAddress } from '../../shared/geo.js';
 import { Availability, Coupons, Kitchen, Logistics, P, Pill, Receipts, Summary, Zones } from '../../components/panelSections';
 import { useApp } from '../../lib/store';
 import { adminDeleteOrder, adminLogin, adminOrders, adminReceiptUrl, adminSetStatus, adminSetStoreOpen, subscribe } from '../../lib/api';
@@ -18,21 +22,22 @@ import { deliveryMapsUrl, displayDeliveryAddress, getDeliveryZoneFromAddress } f
 // (PANEL DE CONTROL · OPERACIÓN SHET., sincronización, tienda, indicadores y 8 secciones).
 
 export default function Admin() {
-  const { adminToken, setAdminToken, hydrated } = useApp();
+  const { adminToken, setAdminToken, hydrated, auth, isOwner } = useApp();
   const insets = useSafeAreaInsets();
+  const leave = () => { if (adminToken) setAdminToken(null); else signOut(); };
   return <View style={{ flex: 1, backgroundColor: colors.paper }}>
     <View style={[st.topbar, { paddingTop: insets.top + 8 }]}>
       <Image source={require('../../../assets/logo.png')} style={{ width: 40, height: 40, borderRadius: 20 }}/>
       <Text style={st.brand}>SHET BURGER <Text style={{ color: colors.pink }}>ADMIN</Text></Text>
       <View style={{ flex: 1 }}/>
-      {adminToken && <Pressable onPress={() => setAdminToken(null)} hitSlop={8} style={st.topBtn}><Ionicons name="log-out-outline" size={18} color={colors.cream}/><Text style={st.topBtnText}>Salir</Text></Pressable>}
+      {isOwner && <Pressable onPress={leave} hitSlop={8} style={st.topBtn}><Ionicons name="log-out-outline" size={18} color={colors.cream}/><Text style={st.topBtnText}>Salir</Text></Pressable>}
     </View>
     {!hydrated ? <View style={st.center}><ActivityIndicator color={colors.pinkDeep}/></View>
-      : adminToken ? <Panel token={adminToken} onSignOut={() => setAdminToken(null)}/> : <Login onToken={setAdminToken}/>}
+      : isOwner ? <Panel token={adminToken || null} onSignOut={leave}/> : <Login onToken={setAdminToken} auth={auth}/>}
   </View>;
 }
 
-function Login({ onToken }) {
+function Login({ onToken, auth }) {
   const [email, setEmail] = useState(''), [password, setPassword] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const submit = async () => {
     setBusy(true); setError('');
@@ -47,6 +52,12 @@ function Login({ onToken }) {
     <Field label="Contraseña" value={password} onChangeText={setPassword} secureTextEntry autoComplete="password" textContentType="password" onSubmitEditing={submit}/>
     {!!error && <Notice tone="bad">{error}</Notice>}
     <Button title={busy ? 'Conectando…' : 'Entrar al panel'} onPress={submit} disabled={busy || !email || !password}/>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><View style={st.or}/><Text style={P.small}>o</Text><View style={st.or}/></View>
+    {/* Igual que la web: la cuenta de Google debe estar registrada como administradora. */}
+    {auth.user && !auth.isAdmin ? <View style={{ gap: 10 }}>
+      <Notice tone="bad">La cuenta {auth.user.email} no está registrada como administradora.</Notice>
+      <Button variant="outline" title="Usar otra cuenta" onPress={() => signOut()}/>
+    </View> : <GoogleButton label="Entrar con Google"/>}
     <Text style={P.small}>Usa el mismo correo y contraseña del panel web. Este acceso guarda los cambios en todos los dispositivos.</Text>
   </ScrollView>;
 }
@@ -226,6 +237,7 @@ function OrderSheet({ order, onClose, onAdvance, onDelete }) {
       </View>
       <Text style={{ fontFamily: fonts.button, fontSize: 32, textTransform: 'uppercase' }}>{order.customer?.name || 'Cliente'}</Text>
       <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 0.6, color: colors.muted }}>{isDelivery ? `DELIVERY · ${displayDeliveryAddress(order.address)}` : 'RETIRO EN EL CARRITO · RÍO LOA 130'}</Text>
+      {isDelivery && <DeliveryMap readOnly zones={zones} point={parsePointFromAddress(order.address)} activeZoneId={zone?.id || null} style={st.map}/>}
       {map && <Pressable onPress={() => Linking.openURL(map)} style={st.link}><Ionicons name="location-outline" size={18} color={colors.ink}/><Text style={st.linkText}>ABRIR UBICACIÓN EN MAPS</Text></Pressable>}
       {phone && <Pressable onPress={() => Linking.openURL(`tel:${phone}`)} style={st.link}><Ionicons name="call-outline" size={18} color={colors.ink}/><Text style={st.linkText}>LLAMAR AL {phone}</Text></Pressable>}
       {phone && <Pressable onPress={() => Linking.openURL(`https://wa.me/${phone.replace(/\D/g, '')}`)} style={st.link}><Ionicons name="logo-whatsapp" size={18} color={colors.ink}/><Text style={st.linkText}>ESCRIBIR POR WHATSAPP</Text></Pressable>}
@@ -268,6 +280,8 @@ const st = StyleSheet.create({
   lateDot: { position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.late },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white },
   row: { flexDirection: 'row', gap: 12, padding: 16, backgroundColor: colors.white, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line, marginBottom: -StyleSheet.hairlineWidth },
+  or: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.line },
+  map: { width: '100%', height: 240, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   close: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
   link: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 46, paddingHorizontal: 14, borderWidth: 1, borderColor: colors.ink, borderRadius: 999, alignSelf: 'flex-start' },
   linkText: { fontFamily: fonts.button, fontSize: 11, letterSpacing: 0.8, color: colors.ink },

@@ -2,6 +2,7 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState } from 'react-native';
 import { loadCatalog, loadStore, loadZones, subscribe } from './api';
+import { useAuth } from './auth';
 import { DELIVERY_ZONES } from '../shared/delivery.js';
 import { customizationTotal, customizationUnavailable, priceValue } from '../shared/customization.js';
 
@@ -20,6 +21,7 @@ export function AppProvider({ children }) {
   const [profile, setProfile] = useState({ name: '', phone: '' });
   const [adminToken, setAdminToken] = useState(null);
   const [hydrated, setHydrated] = useState(false);
+  const auth = useAuth();
 
   const refresh = useCallback(async () => {
     try {
@@ -83,7 +85,9 @@ export function AppProvider({ children }) {
     products, stock, storeOpen, zones, status, refresh, cart, addToCart, setQuantity, clearCart,
     cartCount: cart.reduce((s, i) => s + i.quantity, 0), cartSubtotal: cart.reduce((s, i) => s + i.variant.price * i.quantity, 0),
     myOrders, rememberOrder, profile, setProfile, adminToken, setAdminToken, hydrated,
-  }), [products, stock, storeOpen, zones, status, refresh, cart, addToCart, setQuantity, clearCart, myOrders, rememberOrder, profile, adminToken, hydrated]);
+    // Dueño: entra con el usuario del panel (token) o con su cuenta de Google administradora.
+    auth, isOwner: Boolean(adminToken) || auth.isAdmin,
+  }), [auth, products, stock, storeOpen, zones, status, refresh, cart, addToCart, setQuantity, clearCart, myOrders, rememberOrder, profile, adminToken, hydrated]);
   return createElement(Ctx.Provider, { value }, children);
 }
 

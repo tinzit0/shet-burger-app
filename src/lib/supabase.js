@@ -13,6 +13,8 @@ export const supabase = createClient(url, key, {
     storage: Platform.OS === 'web' && typeof window === 'undefined' ? undefined : AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // PKCE: el celular recibe un código de Google y lo canjea por la sesión (más seguro que tokens en la URL).
+    flowType: 'pkce',
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });

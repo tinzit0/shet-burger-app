@@ -58,7 +58,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0b0a0c"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "scheme": "shetburger",
     "backgroundColor": "#0b0a0c",
