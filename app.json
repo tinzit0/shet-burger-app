@@ -49,10 +49,19 @@
           "photosPermission": "Para adjuntar el comprobante de transferencia de tu pedido."
         }
       ],
-      "expo-video"
+      "expo-video",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#0b0a0c"
+        }
+      ]
     ],
     "scheme": "shetburger",
-    "backgroundColor": "#f7f1ed",
+    "backgroundColor": "#0b0a0c",
     "experiments": {
       "typedRoutes": false
     }

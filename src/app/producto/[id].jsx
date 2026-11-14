@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Chip, Display, Eyebrow, Notice, ProductPhoto, Stepper } from '../../components/ui';
 import { useApp } from '../../lib/store';
@@ -19,7 +20,7 @@ function Extras({ title, scope, products, stock, allowedIds, quantities, onChang
     {list.map(extra => {
       const soldOut = stock[extra.id] === false, q = quantities[extra.id] || 0;
       return <View key={extra.id} style={[st.extra, soldOut && { opacity: 0.45 }]}>
-        <View style={{ flex: 1 }}><Text style={{ fontWeight: '700', fontSize: 15 }}>{extra.name}</Text><Text style={{ color: colors.muted, fontSize: 13 }}>{soldOut ? 'Agotado' : `+${money(priceValue(extra.prices[0][1]))}`}</Text></View>
+        <View style={{ flex: 1 }}><Text style={{ fontFamily: 'DMSans_700Bold', fontSize: 15, color: colors.ink }}>{extra.name}</Text><Text style={{ fontFamily: 'DMSans_400Regular', color: colors.muted, fontSize: 13 }}>{soldOut ? 'Agotado' : `+${money(priceValue(extra.prices[0][1]))}`}</Text></View>
         <Stepper label={extra.name} value={q} max={soldOut ? 0 : scope === 'fries' ? FRIES_MAX_QUANTITY : 10} onChange={v => onChange({ ...quantities, [extra.id]: v })}/>
       </View>;
     })}
@@ -92,12 +93,15 @@ function Configurator({ product }) {
   const label = !storeOpen ? 'Tienda cerrada' : soldOut ? 'Agotado' : product.optionGroup && !option ? `Elige ${product.optionGroup.label}` : 'Agregar al pedido';
   return <View style={{ flex: 1, backgroundColor: colors.paper }}>
     <ScrollView contentContainerStyle={{ paddingBottom: 130 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
-      <ProductPhoto product={product} style={st.photo} contentFit={product.category === 'bebidas' ? 'contain' : 'cover'}/>
+      <View>
+        <ProductPhoto product={product} style={st.photo} contentFit={product.category === 'bebidas' ? 'contain' : 'cover'}/>
+        <Pressable onPress={() => router.back()} accessibilityLabel="Cerrar" hitSlop={10} style={({ pressed }) => [st.close, pressed && { transform: [{ scale: 0.94 }] }]}><Ionicons name="close" size={22} color={colors.cream}/></Pressable>
+      </View>
       <View style={{ padding: 20, gap: 18 }}>
         <View style={{ gap: 6 }}>
           <Eyebrow>Arma tu pedido</Eyebrow>
           <Display size={36}>{product.name}</Display>
-          {!!product.description && <Text style={{ color: colors.muted, fontSize: 15, lineHeight: 22 }}>{product.description}</Text>}
+          {!!product.description && <Text style={{ fontFamily: 'DMSans_400Regular', color: colors.muted, fontSize: 15, lineHeight: 22 }}>{product.description}</Text>}
         </View>
 
         {product.prices.length > 1 && <View style={{ gap: 8 }}>
@@ -164,14 +168,15 @@ function Configurator({ product }) {
 
 const st = StyleSheet.create({
   photo: { width: '100%', aspectRatio: 1.25 },
-  legend: { fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', color: colors.ink },
+  close: { position: 'absolute', top: 14, right: 14, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(9,9,11,0.7)', alignItems: 'center', justifyContent: 'center' },
+  legend: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', color: colors.ink },
   sub: { fontSize: 13, fontWeight: '700', color: colors.muted },
   variant: { flex: 1, borderRadius: 14, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   variantOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  variantName: { fontSize: 16, fontWeight: '600', color: colors.ink },
-  variantPrice: { fontSize: 15, fontWeight: '800', color: colors.pinkDeep },
+  variantName: { fontFamily: 'DMSans_500Medium', fontSize: 16, color: colors.ink },
+  variantPrice: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 15, color: colors.pinkDeep },
   extra: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.white, borderRadius: 14, padding: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line },
   slot: { gap: 12, backgroundColor: colors.white, borderRadius: 18, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line },
-  note: { minHeight: 84, borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, padding: 12, fontSize: 15, textAlignVertical: 'top', color: colors.ink },
+  note: { fontFamily: 'DMSans_400Regular', minHeight: 84, borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, padding: 12, fontSize: 15, textAlignVertical: 'top', color: colors.ink },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, backgroundColor: colors.paper, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line, flexDirection: 'row' },
 });

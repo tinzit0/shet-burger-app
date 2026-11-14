@@ -17,7 +17,8 @@ const TABS = {
   panel: { label: 'Panel', icon: 'speedometer' },
 };
 
-function ShetTabBar({ state, navigation }) {
+// Expo Router 58 entrega navigateToTab(routeKey) a la barra (no el objeto navigation).
+function ShetTabBar({ state, navigateToTab }) {
   const insets = useSafeAreaInsets();
   const { cartCount, adminToken } = useApp();
   return <View style={[st.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
@@ -26,10 +27,7 @@ function ShetTabBar({ state, navigation }) {
       // El panel solo aparece en la barra cuando el dueño inició sesión.
       if (!tab || (route.name === 'panel' && !adminToken && state.index !== index)) return null;
       const focused = state.index === index;
-      const onPress = () => {
-        const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-        if (!focused && !event.defaultPrevented) { Haptics.selectionAsync().catch(() => {}); navigation.navigate(route.name); }
-      };
+      const onPress = () => { if (!focused) { Haptics.selectionAsync().catch(() => {}); navigateToTab(route.key); } };
       return <Pressable key={route.key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={route.name === 'carrito' && cartCount ? `${tab.label}, ${cartCount} productos` : tab.label} style={st.item} hitSlop={4}>
         <View style={[st.iconWrap, focused && st.iconOn]}>
           <Ionicons name={focused ? tab.icon : `${tab.icon}-outline`} size={22} color={focused ? colors.ink : colors.nightMuted}/>
