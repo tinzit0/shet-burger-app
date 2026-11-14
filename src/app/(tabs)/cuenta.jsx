@@ -1,0 +1,34 @@
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button, Card, Display, Eyebrow, Field } from '../../components/ui';
+import { useApp } from '../../lib/store';
+import { colors, money } from '../../lib/theme';
+
+export default function Account() {
+  const insets = useSafeAreaInsets();
+  const { myOrders, profile, setProfile } = useApp();
+  return <ScrollView style={{ backgroundColor: colors.paper }} contentContainerStyle={{ padding: 16, paddingTop: insets.top + 12, gap: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+    <Display size={40}>Mis pedidos</Display>
+    {myOrders.length ? myOrders.map(o => <Pressable key={o.order_number} onPress={() => router.push(`/pedido/${o.order_number}`)} style={({ pressed }) => [pressed && { transform: [{ scale: 0.98 }] }]}>
+      <Card style={st.order}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontWeight: '800' }}>#{o.order_number}</Text>
+          <Text style={{ color: colors.muted, fontSize: 13 }}>{new Date(o.created_at || Date.now()).toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' })} · {money(o.total)}</Text>
+        </View>
+        <Text style={{ color: colors.pinkDeep, fontWeight: '800', fontSize: 12 }}>VER →</Text>
+      </Card>
+    </Pressable>) : <Card><Text style={{ color: colors.muted }}>Aún no haces pedidos desde este celular. Cuando pidas, aquí podrás seguirlos en vivo.</Text></Card>}
+
+    <Card style={{ gap: 12 }}>
+      <Eyebrow>Tus datos para pedir más rápido</Eyebrow>
+      <Field label="Nombre" value={profile.name} onChangeText={name => setProfile({ ...profile, name })} placeholder="Tu nombre"/>
+      <Field label="Celular" prefix="+569" value={profile.phone} onChangeText={t => setProfile({ ...profile, phone: t.replace(/\D/g, '').slice(0, 8) })} keyboardType="number-pad" placeholder="12345678"/>
+      <Text style={{ fontSize: 12, color: colors.muted }}>Se guardan solo en este celular.</Text>
+    </Card>
+
+    <Button variant="ghost" small title="Soy el dueño · Panel" onPress={() => router.push('/admin')}/>
+  </ScrollView>;
+}
+
+const st = StyleSheet.create({ order: { flexDirection: 'row', alignItems: 'center', gap: 12 } });

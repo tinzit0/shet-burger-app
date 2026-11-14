@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ver app en el navegador de VS Code",
+      "detail": "Inicia Expo en modo web (http://localhost:8081). Luego: Ctrl+Shift+P → Simple Browser: Show",
+      "type": "shell",
+      "command": "npx expo start --web --port 8081",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Ver app en el celular (Expo Go)",
+      "detail": "Muestra un código QR para escanear con Expo Go",
+      "type": "shell",
+      "command": "npx expo start",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

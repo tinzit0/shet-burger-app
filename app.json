@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "SHET BURGER",
+    "slug": "shet-burger",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "cl.shetburger.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para calcular el despacho a tu casa.",
+        "NSPhotoLibraryUsageDescription": "Para adjuntar el comprobante de transferencia de tu pedido.",
+        "CADisableMinimumFrameDurationOnPhone": true
+      }
+    },
+    "android": {
+      "package": "cl.shetburger.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#09090b",
+        "foregroundImage": "./assets/logo.png"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/logo.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-image",
+      "expo-audio",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos tu ubicación para calcular el despacho a tu casa."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Para adjuntar el comprobante de transferencia de tu pedido."
+        }
+      ]
+    ],
+    "scheme": "shetburger",
+    "backgroundColor": "#f7f1ed",
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
