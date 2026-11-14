@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { AppProvider } from '../lib/store';
 import { colors } from '../lib/theme';
 
@@ -14,7 +14,9 @@ export default function RootLayout() {
     DMSans_400Regular, DMSans_500Medium, DMSans_700Bold, SpaceGrotesk_700Bold,
   });
   if (!loaded) return <View style={{ flex: 1, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.pink}/></View>;
-  return <AppProvider>
+  // En el navegador (vista previa de VS Code) la app se muestra con ancho de celular.
+  const frame = Platform.OS === 'web' ? { flex: 1, width: '100%', maxWidth: 440, alignSelf: 'center', overflow: 'hidden' } : { flex: 1 };
+  return <View style={{ flex: 1, backgroundColor: '#1d1b1e' }}><View style={frame}><AppProvider>
     <StatusBar style="auto"/>
     <Stack screenOptions={{ headerShadowVisible: false, headerStyle: { backgroundColor: colors.paper }, headerTintColor: colors.ink, headerTitleStyle: { fontWeight: '800' }, contentStyle: { backgroundColor: colors.paper }, headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }}/>
@@ -22,5 +24,5 @@ export default function RootLayout() {
       <Stack.Screen name="checkout" options={{ title: 'Finalizar pedido' }}/>
       <Stack.Screen name="pedido/[numero]" options={{ title: 'Seguimiento' }}/>
     </Stack>
-  </AppProvider>;
+  </AppProvider></View></View>;
 }

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import MapEmbed from '../../components/MapEmbed';
 import { Marquee, OutlinePill, PinkPill, TopBar, WhatsAppFab, useReducedMotion } from '../../components/brand';
 import { useApp } from '../../lib/store';
 import { loadPublicCoupons } from '../../lib/api';
@@ -124,13 +125,13 @@ function Instagram() {
     <Text style={st.h2}>SÍGUENOS{'\n'}<Text style={{ color: colors.pink }}>EN INSTAGRAM</Text></Text>
     <Text style={st.copy}>Promos, lanzamientos y lo que sale de la plancha cada noche. Todo pasa primero en nuestro Instagram.</Text>
     <OutlinePill title="Seguir a @shetburger" onPress={ig}/>
-    <Pressable onPress={ig} accessibilityRole="link" accessibilityLabel="Abrir el Instagram de SHET Burger" style={st.igCard}>
+    <Pressable onPress={ig} accessibilityRole="link" accessibilityLabel="Abrir el Instagram de SHET Burger" style={[st.igCard, { width: '100%', maxWidth: 440, alignSelf: 'center' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
         <View style={st.igAvatar}><Image source={require('../../../assets/logo.png')} style={{ width: 34, height: 34, borderRadius: 17 }}/></View>
         <View style={{ flex: 1 }}><Text style={{ fontFamily: fonts.bodyBold, color: colors.ink }}>shetburger</Text><Text style={{ fontFamily: fonts.body, color: colors.muted, fontSize: 12 }}>Nonguén, Concepción</Text></View>
         <Ionicons name="logo-instagram" size={22} color={colors.ink}/>
       </View>
-      <View style={{ width: '100%', aspectRatio: 0.82, backgroundColor: colors.ink }}>
+      <View style={{ width: '100%', aspectRatio: 0.82, backgroundColor: colors.ink, overflow: 'hidden' }}>
         <Image source={{ uri: imageUrl('/assets/campaign/scroll-video-poster.webp') }} style={StyleSheet.absoluteFill} contentFit="cover"/>
         <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} surfaceType="textureView"/>
       </View>
@@ -148,11 +149,12 @@ function Location() {
   return <View style={{ backgroundColor: colors.night, padding: 20, paddingTop: 40, gap: 14 }}>
     <Text style={[st.h2, { fontSize: 52, lineHeight: 56 }]}>TU SHET{'\n'}<Text style={{ color: colors.pink }}>ESTÁ CERCA.</Text></Text>
     <Text style={st.copy}>Retira tu pedido en Río Loa 130, Nonguén, o pide despacho dentro de nuestras zonas disponibles.</Text>
-    <Pressable onPress={() => Linking.openURL(maps)} style={{ borderWidth: 2, borderColor: colors.pink }}>
-      <Image source={{ uri: imageUrl('/assets/campaign/shet-outside-1200.webp') }} style={{ width: '100%', aspectRatio: 1.15 }} contentFit="cover"/>
-      <View style={st.mapTag}><Text style={{ color: colors.pink, fontSize: 14 }}>⌖</Text><Text style={{ fontFamily: fonts.button, color: colors.cream, fontSize: 11, letterSpacing: 1 }}>RÍO LOA 130 · NONGUÉN</Text></View>
-      <View style={[st.mapTag, { top: 10, bottom: undefined, left: 10, backgroundColor: colors.white }]}><Text style={{ fontFamily: fonts.bodyMedium, color: colors.ink, fontSize: 13 }}>Abrir en Maps ↗</Text></View>
-    </Pressable>
+    {/* Mapa real de Google, como la web, con la etiqueta de la dirección y "Abrir en Maps". */}
+    <View style={{ borderWidth: 2, borderColor: colors.pink, overflow: 'hidden' }}>
+      <MapEmbed address={business.pickupAddress} style={{ width: '100%', aspectRatio: 1.15 }}/>
+      <View pointerEvents="none" style={st.mapTag}><Ionicons name="location-outline" size={15} color={colors.pink}/><Text style={{ fontFamily: fonts.button, color: colors.cream, fontSize: 11, letterSpacing: 1 }}>RÍO LOA 130 · NONGUÉN</Text></View>
+      <Pressable onPress={() => Linking.openURL(maps)} style={st.mapOpen} hitSlop={6}><Text style={{ fontFamily: fonts.bodyMedium, color: colors.ink, fontSize: 13 }}>Abrir en Maps ↗</Text></Pressable>
+    </View>
     <View style={st.pinkCard}>
       <Text style={{ fontFamily: fonts.button, fontSize: 11, letterSpacing: 1.6, color: colors.ink }}>DELIVERY Y RETIRO</Text>
       <Text style={{ fontFamily: fonts.display, fontSize: 42, lineHeight: 46, color: colors.ink, textTransform: 'uppercase' }}>Ven por tu SHET o te la llevamos.</Text>
@@ -245,6 +247,7 @@ const st = StyleSheet.create({
   igCard: { backgroundColor: colors.white, borderRadius: 22, overflow: 'hidden', borderWidth: 6, borderColor: '#1d1c1f' },
   igButton: { margin: 12, minHeight: 46, borderRadius: 10, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#c13584' },
   igAvatar: { padding: 2, borderRadius: 20, borderWidth: 2, borderColor: '#e1306c' },
+  mapOpen: { position: 'absolute', top: 10, left: 10, backgroundColor: colors.white, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 2, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, elevation: 2 },
   mapTag: { position: 'absolute', left: 12, bottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.ink, paddingHorizontal: 12, paddingVertical: 9 },
   pinkCard: { backgroundColor: colors.pink, padding: 22, gap: 16 },
   footLink: { fontFamily: fonts.button, color: colors.cream, fontSize: 12, letterSpacing: 1.2 },

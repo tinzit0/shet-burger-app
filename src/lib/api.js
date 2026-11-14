@@ -103,3 +103,15 @@ export const adminSetAvailability = (token, productId, available) => supabase.rp
 export const adminCoupons = token => supabase.rpc('admin_list_coupons', { p_token: token });
 export const adminSaveCoupon = (token, coupon) => supabase.rpc('admin_save_coupon', { p_coupon: coupon, p_token: token });
 export const adminReceiptUrl = async path => (await supabase.storage.from('order-receipts').createSignedUrl(path, 600)).data?.signedUrl || null;
+
+// Igual que deleteStoredOrder de la web: borra el comprobante (si se puede) y luego el pedido.
+export async function adminDeleteOrder(order) {
+  const key = /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(order.id)) ? 'id' : 'order_number';
+  if (order.receipt_path) await supabase.storage.from('order-receipts').remove([order.receipt_path]).catch(() => {});
+  return supabase.from('orders').delete().eq(key, order.id);
+}
+export const adminDeleteCoupon = (token, id) => supabase.rpc('admin_delete_coupon', { p_id: id, p_token: token });
+export const adminSaveZones = (token, zones) => supabase.rpc('admin_save_delivery_zones', {
+  p_zones: zones.map((zone, position) => ({ id: zone.id, label: zone.label.trim(), fee: Math.max(0, Math.round(Number(zone.fee) || 0)), color: zone.color, polygon: zone.polygon, active: zone.active !== false, position })),
+  p_token: token,
+});
