@@ -1,5 +1,6 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
 import { loadCatalog, loadStore, loadZones, subscribe } from './api';
 import { DELIVERY_ZONES } from '../shared/delivery.js';
 import { customizationTotal, customizationUnavailable, priceValue } from '../shared/customization.js';
@@ -33,13 +34,18 @@ export function AppProvider({ children }) {
       setCart(c); setMyOrders(o); setProfile(p); setAdminToken(t); setHydrated(true);
     })();
     refresh();
-    // Stock, tienda abierta/cerrada y menú se actualizan en vivo, igual que en la web.
+    // Web y app comparten la misma base: cualquier cambio hecho en una aparece en la otra.
+    // En vivo: tienda abierta/cerrada, stock, menú y zonas de despacho.
     const offs = [
       subscribe('store_settings', refresh),
       subscribe('product_availability', refresh),
       subscribe('shet_catalog_products', refresh),
+      subscribe('delivery_zones', refresh),
     ];
-    return () => offs.forEach(off => off());
+    // Respaldo: al volver a abrir la app y cada minuto, por si el aviso en vivo se cortó.
+    const appState = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
+    const timer = setInterval(refresh, 60000);
+    return () => { offs.forEach(off => off()); appState.remove(); clearInterval(timer); };
   }, [refresh]);
 
   useEffect(() => { if (hydrated) write('shet-cart', cart); }, [cart, hydrated]);

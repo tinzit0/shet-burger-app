@@ -8,6 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Chip, Display, Eyebrow, Field, Notice } from '../components/ui';
+import DeliveryMap from '../components/DeliveryMap';
 import { useApp } from '../lib/store';
 import { findCoupon, placeOrder } from '../lib/api';
 import { business, colors, money } from '../lib/theme';
@@ -48,6 +49,8 @@ export default function Checkout() {
   // Al cambiar la dirección se invalida el despacho calculado.
   useEffect(() => {
     if (keepPlace.current) { keepPlace.current = false; return; }
+    // Número escrito después de marcar la casa en el mapa: se mantiene ese pin y su zona.
+    if (place?.fromMap && place.street === street) return;
     setPlace(null); setLookup({ status: 'idle', message: '' });
   }, [street, number]);
 
@@ -67,27 +70,36 @@ export default function Checkout() {
     }
   };
 
+  // Punto elegido en el mapa o por GPS: zona según el polígono y calle/número por geocodificación inversa (igual que la web).
+  const placePoint = async (point, id) => {
+    const found = zoneForPoint(point, zones);
+    if (!found) { setPlace(null); throw new Error(DELIVERY_UNAVAILABLE_MESSAGE); }
+    setPlace({ zone: found, point, precise: true, street, fromMap: true });
+    setLookup({ status: 'ready', message: `Ubicación lista: ${found.label}.` });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const addr = await reverseGeocode(point).catch(() => null);
+    if (id !== lookupId.current) return;
+    const nextStreet = addr?.street || street, nextNumber = addr?.number ? String(addr.number) : number;
+    // Rellenar la calle no debe borrar el punto recién marcado.
+    if (nextStreet !== street || nextNumber !== number) keepPlace.current = true;
+    setStreet(nextStreet); setNumber(nextNumber);
+    setPlace({ zone: found, point, precise: true, street: nextStreet, fromMap: true });
+    setLookup({ status: 'ready', message: `Ubicación lista: ${found.label}.${nextNumber ? '' : ' Escribe el número de tu casa.'}` });
+  };
+  const pickOnMap = point => {
+    const id = ++lookupId.current;
+    placePoint(point, id).catch(e => { if (id === lookupId.current) setLookup({ status: 'error', message: e.message }); });
+  };
   const useMyLocation = async () => {
     const id = ++lookupId.current;
     setLookup({ status: 'loading', message: 'Obteniendo tu ubicación…' });
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
-      if (perm.status !== 'granted') throw new Error('Necesitamos permiso de ubicación. También puedes escribir tu calle y número.');
+      if (perm.status !== 'granted') throw new Error('Activa el permiso de ubicación o toca tu casa en el mapa.');
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      const point = [pos.coords.latitude, pos.coords.longitude];
-      const found = zoneForPoint(point, zones);
-      if (!found) throw new Error(DELIVERY_UNAVAILABLE_MESSAGE);
-      const addr = await reverseGeocode(point).catch(() => null);
-      if (id !== lookupId.current) return;
-      const nextStreet = addr?.street || street, nextNumber = addr?.number ? String(addr.number) : number;
-      // Rellenar la calle no debe borrar el punto GPS recién obtenido.
-      if (nextStreet !== street || nextNumber !== number) keepPlace.current = true;
-      setStreet(nextStreet); setNumber(nextNumber);
-      setPlace({ zone: found, point, precise: true });
-      setLookup({ status: 'ready', message: `Ubicación lista: ${found.label}.${nextNumber ? '' : ' Escribe el número de tu casa.'}` });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      await placePoint([pos.coords.latitude, pos.coords.longitude], id);
     } catch (e) {
-      if (id === lookupId.current) setLookup({ status: 'error', message: e.message || 'No pudimos obtener tu ubicación.' });
+      if (id === lookupId.current) setLookup({ status: 'error', message: e.message || 'No pudimos obtener tu ubicación. Toca tu casa en el mapa.' });
     }
   };
 
@@ -173,6 +185,8 @@ export default function Checkout() {
           <Field style={{ flex: 1 }} label="Calle" value={street} onChangeText={setStreet} placeholder="Ej.: Río Itata" textContentType="streetAddressLine1"/>
           <Field style={{ width: 96 }} label="Número" value={number} onChangeText={setNumber} placeholder="50" keyboardType="number-pad"/>
         </View>
+        <DeliveryMap zones={zones} point={place?.point || null} activeZoneId={zone?.id || null} onPick={pickOnMap} style={st.map}/>
+        <Text style={{ fontSize: 12, color: colors.muted }}>Toca tu casa en el mapa o arrastra el pin. Los colores son las zonas de reparto.</Text>
         <Field label="Depto / detalle (opcional)" value={detail} onChangeText={setDetail} placeholder="Ej.: casa verde, depto 302" maxLength={60}/>
         {lookup.status !== 'ready' && <Button title={lookup.status === 'loading' ? 'Buscando…' : 'Calcular despacho'} onPress={calculate} disabled={lookup.status === 'loading' || !street.trim() || !number.trim()}/>}
         {lookup.status === 'loading' && <ActivityIndicator color={colors.pinkDeep}/>}
@@ -221,6 +235,7 @@ const st = StyleSheet.create({
   modeOn: { backgroundColor: colors.pink, borderColor: colors.ink },
   modeTitle: { fontWeight: '800', fontSize: 14, textTransform: 'uppercase', color: colors.ink },
   modeSub: { fontSize: 12, color: colors.muted },
+  map: { width: '100%', height: 300, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: colors.line },
   bank: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line, paddingTop: 10, marginTop: 4 },
 });

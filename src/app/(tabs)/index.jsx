@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 import MapEmbed from '../../components/MapEmbed';
 import { Marquee, OutlinePill, PinkPill, TopBar, WhatsAppFab, useReducedMotion } from '../../components/brand';
 import { useApp } from '../../lib/store';
-import { loadPublicCoupons } from '../../lib/api';
+import { loadPublicCoupons, subscribe } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { business, colors, fonts, imageUrl, OPENING_TIME } from '../../lib/theme';
 import { couponLabel } from '../../shared/couponRules.js';
@@ -194,7 +194,13 @@ export default function Home() {
     if (c.data?.payload) setContent(v => ({ ...v, ...c.data.payload }));
     setCoupons(k.data || []);
   }, []);
-  useEffect(() => { loadExtras().catch(() => {}); }, [loadExtras]);
+  useEffect(() => {
+    loadExtras().catch(() => {});
+    // Textos del inicio y cupones editados en la web aparecen aquí al instante.
+    const offs = [subscribe('shet_site_content', () => loadExtras().catch(() => {})), subscribe('coupons', () => loadExtras().catch(() => {}))];
+    const timer = setInterval(() => loadExtras().catch(() => {}), 60000);
+    return () => { offs.forEach(off => off()); clearInterval(timer); };
+  }, [loadExtras]);
   const last = myOrders[0];
 
   return <View style={{ flex: 1, backgroundColor: colors.night }}>
