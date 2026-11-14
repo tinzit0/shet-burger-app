@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const web = process.env.SHET_WEB_DIR || join(root, '..', 'shet-burger');
-const files = ['couponRules.js', 'orderStatus.js', 'delivery.js', 'geo.js', 'customization.js', 'insights.js', 'addressLookup.js'];
+const files = ['bestSellers.js', 'couponRules.js', 'orderStatus.js', 'delivery.js', 'geo.js', 'customization.js', 'insights.js', 'addressLookup.js'];
 
 await mkdir(join(root, 'src/shared'), { recursive: true });
 for (const file of files) {

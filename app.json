@@ -48,7 +48,8 @@
         {
           "photosPermission": "Para adjuntar el comprobante de transferencia de tu pedido."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "scheme": "shetburger",
     "backgroundColor": "#f7f1ed",

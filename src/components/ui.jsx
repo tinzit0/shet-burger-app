@@ -56,8 +56,12 @@ export function Stepper({ value, onChange, min = 0, max = 25, label }) {
   </View>;
 }
 
+// Igual que productImages.js de la web: las bebidas usan sus fotos de lata si el catálogo no trae una.
+const drinkImages = { 'bebida-0': '/assets/drinks/coca-cola.webp', 'bebida-1': '/assets/drinks/coca-cola-zero.webp', 'bebida-2': '/assets/drinks/sprite.webp', 'bebida-3': '/assets/drinks/sprite-zero.webp', 'bebida-4': '/assets/drinks/fanta.webp', 'bebida-5': '/assets/drinks/kem.webp', 'jugo-jumex': '/assets/drinks/jumex-durazno.webp' };
+export const productImagePath = product => product?.image || (product?.category === 'bebidas' ? drinkImages[product.id] : undefined);
+
 export function ProductPhoto({ product, style, contentFit = 'cover' }) {
-  const uri = imageUrl(product?.image);
+  const uri = imageUrl(productImagePath(product));
   if (!uri) return <View style={[s.photoEmpty, style]}><Text style={s.photoEmptyText}>{(product?.name || 'SHET').slice(0, 14)}</Text></View>;
   return <Image source={{ uri }} style={[{ backgroundColor: colors.bone }, style]} contentFit={contentFit} transition={150} cachePolicy="memory-disk" accessibilityIgnoresInvertColors/>;
 }
@@ -67,26 +71,28 @@ export const Notice = ({ children, tone = 'warn' }) => {
   return <View style={[s.notice, { backgroundColor: t[0] }]}><Text style={{ color: t[1], fontSize: 13, lineHeight: 18 }}>{children}</Text></View>;
 };
 
+export const T = ({ style, weight = 'regular', ...rest }) => <Text {...rest} style={[{ fontFamily: weight === 'bold' ? fonts.bodyBold : weight === 'medium' ? fonts.bodyMedium : fonts.body, color: colors.ink }, style]}/>;
+
 export const Row = ({ children, style }) => <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>{children}</View>;
 
 export const s = StyleSheet.create({
   button: { minHeight: 52, borderRadius: 999, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   buttonSmall: { minHeight: 40, paddingHorizontal: 14 },
-  buttonText: { fontSize: 13, fontWeight: '800', letterSpacing: 1.2, textTransform: 'uppercase' },
+  buttonText: { fontFamily: fonts.button, fontSize: 13, letterSpacing: 1.2, textTransform: 'uppercase' },
   buttonTextSmall: { fontSize: 11, letterSpacing: 0.8 },
   pressed: { transform: [{ scale: 0.97 }], opacity: 0.92 },
   disabled: { opacity: 0.4 },
   chip: { minHeight: 40, paddingHorizontal: 16, borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
   chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { fontSize: 12, fontWeight: '700', color: colors.ink, letterSpacing: 0.5 },
+  chipText: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: colors.ink, letterSpacing: 0.3 },
   chipTextActive: { color: colors.cream },
-  eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 1.6, textTransform: 'uppercase' },
+  eyebrow: { fontFamily: fonts.button, fontSize: 11, letterSpacing: 1.6, textTransform: 'uppercase' },
   card: { backgroundColor: colors.white, borderRadius: 18, padding: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.line },
-  label: { fontSize: 12, fontWeight: '700', color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase' },
+  label: { fontFamily: fonts.bodyBold, fontSize: 12, color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase' },
   inputWrap: { flexDirection: 'row', alignItems: 'center', minHeight: 52, borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, paddingHorizontal: 14 },
   prefix: { fontSize: 16, color: colors.muted, marginRight: 6 },
-  input: { flex: 1, fontSize: 16, color: colors.ink, paddingVertical: 12 },
-  hint: { fontSize: 12, color: colors.muted, lineHeight: 17 },
+  input: { flex: 1, fontFamily: fonts.body, fontSize: 16, color: colors.ink, paddingVertical: 12 },
+  hint: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, lineHeight: 17 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, padding: 3 },
   stepBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bone },
   stepSign: { fontSize: 20, fontWeight: '600', color: colors.ink, marginTop: -2 },

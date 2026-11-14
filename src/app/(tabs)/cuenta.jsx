@@ -27,7 +27,12 @@ export default function Account() {
       <Text style={{ fontSize: 12, color: colors.muted }}>Se guardan solo en este celular.</Text>
     </Card>
 
-    <Button variant="ghost" small title="Soy el dueño · Panel" onPress={() => router.push('/admin')}/>
+    <Pressable onPress={() => router.navigate('/panel')} accessibilityRole="button" style={({ pressed }) => [pressed && { transform: [{ scale: 0.98 }] }]}>
+      <Card style={{ backgroundColor: colors.ink, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flex: 1, gap: 2 }}><Eyebrow color={colors.pink}>Administración</Eyebrow><Text style={{ color: colors.cream, fontFamily: 'DMSans_500Medium' }}>¿Eres el dueño? Entra al panel de SHET.</Text></View>
+        <Text style={{ color: colors.pink, fontFamily: 'SpaceGrotesk_700Bold', fontSize: 12 }}>ENTRAR ↗</Text>
+      </Card>
+    </Pressable>
   </ScrollView>;
 }
 

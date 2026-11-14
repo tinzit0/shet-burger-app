@@ -19,7 +19,7 @@ export default function Cart() {
   if (!cart.length) return <View style={[st.empty, { paddingTop: insets.top }]}>
     <Display size={40} style={{ textAlign: 'center' }}>Tu pedido{'\n'}está vacío</Display>
     <Text style={{ color: colors.muted, textAlign: 'center', fontSize: 15 }}>Elige tu hamburguesa favorita y la preparamos al momento.</Text>
-    <Button title="Ver el menú" onPress={() => router.navigate('/menu')}/>
+    <Button title="Ver la carta" onPress={() => router.navigate('/pedir')}/>
   </View>;
 
   return <View style={{ flex: 1, backgroundColor: colors.paper }}>

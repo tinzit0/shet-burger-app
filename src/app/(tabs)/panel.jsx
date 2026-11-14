@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Linking, Modal, Platform, Pressable, RefreshC
 import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Chip, Display, Eyebrow, Field, Notice, ProductPhoto } from '../../components/ui';
 import { useApp } from '../../lib/store';
 import { adminCoupons, adminLogin, adminOrders, adminReceiptUrl, adminSaveCoupon, adminSetAvailability, adminSetStatus, adminSetStoreOpen, subscribe } from '../../lib/api';
@@ -14,8 +15,16 @@ import { deliveryMapsUrl, displayDeliveryAddress } from '../../shared/delivery.j
 
 export default function Admin() {
   const { adminToken, setAdminToken, hydrated } = useApp();
-  if (!hydrated) return <View style={st.center}><ActivityIndicator color={colors.pinkDeep}/></View>;
-  return adminToken ? <Panel token={adminToken} onSignOut={() => setAdminToken(null)}/> : <Login onToken={setAdminToken}/>;
+  const insets = useSafeAreaInsets();
+  // Cabecera negra de la web (logo + PANEL) para que el dueño sepa dónde está.
+  return <View style={{ flex: 1, backgroundColor: colors.paper }}>
+    <View style={[st.header, { paddingTop: insets.top + 8 }]}>
+      <Image source={require('../../../assets/logo.png')} style={{ width: 38, height: 38, borderRadius: 19 }}/>
+      <Text style={st.headerText}>SHET BURGER <Text style={{ color: colors.pink }}>ADMIN</Text></Text>
+    </View>
+    {!hydrated ? <View style={st.center}><ActivityIndicator color={colors.pinkDeep}/></View>
+      : adminToken ? <Panel token={adminToken} onSignOut={() => setAdminToken(null)}/> : <Login onToken={setAdminToken}/>}
+  </View>;
 }
 
 function Login({ onToken }) {
@@ -215,7 +224,7 @@ function OrderSheet({ order, onClose, onAdvance }) {
   useEffect(() => { setReceipt(null); if (order?.receipt_path) adminReceiptUrl(order.receipt_path).then(setReceipt).catch(() => {}); }, [order?.id, order?.receipt_path]);
   if (!order) return null;
   const stage = getOrderStage(order), map = order.mode === 'delivery' ? deliveryMapsUrl(order.address) : null, phone = order.customer?.phone;
-  return <Modal visible animationType="slide" presentationStyle={Platform.OS === 'ios' ? 'pageSheet' : 'fullScreen'} onRequestClose={onClose}>
+  return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
     <ScrollView style={{ backgroundColor: colors.paper }} contentContainerStyle={{ padding: 20, gap: 14, paddingBottom: 40 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Eyebrow>Pedido #{order.order_number}</Eyebrow><Button small variant="outline" title="Cerrar" onPress={onClose}/></View>
       <Display size={34}>{order.customer?.name || 'Cliente'}</Display>
@@ -241,6 +250,8 @@ function OrderSheet({ order, onClose, onAdvance }) {
 }
 
 const st = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 12, backgroundColor: colors.ink },
+  headerText: { fontFamily: 'SpaceGrotesk_700Bold', color: colors.cream, fontSize: 12, letterSpacing: 1.4 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.paper },
   store: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.ink, borderRadius: 18, padding: 16 },
   fresh: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.pink, borderRadius: 14, padding: 14 },

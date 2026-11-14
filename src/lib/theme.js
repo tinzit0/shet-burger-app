@@ -18,11 +18,25 @@ export const colors = {
   lateBg: '#fdecea',
   warnBg: '#fff6e0',
   warn: '#6b4a0f',
+  // Carta e inicio oscuros, como la web en el celular.
+  night: '#0b0a0c',
+  card: '#1a181b',
+  cardLine: 'rgba(255,249,255,0.12)',
+  nightMuted: '#b9b0b6',
+  whatsapp: '#25d366',
 };
 
+// Mismas familias que la web: Anton (títulos), Space Grotesk (botones), DM Sans (texto).
 export const fonts = {
-  display: 'Anton', // assets/fonts/anton-regular.ttf, cargada con el plugin expo-font
+  display: 'Anton',
+  button: 'SpaceGrotesk_700Bold',
+  body: 'DMSans_400Regular',
+  bodyMedium: 'DMSans_500Medium',
+  bodyBold: 'DMSans_700Bold',
 };
+
+export const WHATSAPP_URL = 'https://wa.me/56956901911?text=Hola%2C%20quiero%20hacer%20una%20consulta';
+export const OPENING_TIME = process.env.EXPO_PUBLIC_OPENING_TIME || '18:00';
 
 export const SITE_URL = process.env.EXPO_PUBLIC_SITE_URL || 'https://shet-burger.concepcion.workers.dev';
 
